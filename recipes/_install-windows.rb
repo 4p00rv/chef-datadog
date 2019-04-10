@@ -85,21 +85,14 @@ remote_file temp_file do
   checksum node['datadog']['windows_agent_checksum'] if node['datadog']['windows_agent_checksum']
   retries package_retries unless package_retries.nil?
   retry_delay package_retry_delay unless package_retry_delay.nil?
-  # As of v1.37, the windows cookbook doesn't upgrade the package if a newer version is downloaded
-  # As a workaround uninstall the package first if a new MSI is downloaded
-  if use_windows_package_resource
-    notifies :remove, 'windows_package[Datadog Agent removal]', :immediately
-  else
-    notifies :remove, 'package[Datadog Agent removal]', :immediately
-  end
 end
 
-# Install the package
+# Install/upgrade the package
 windows_package 'Datadog Agent' do # ~FC009
   source temp_file
   installer_type installer_type
   options install_options
-  action :install
+  action :install  # no upgrade method on windows_package
   if respond_to?(:returns)
     returns [0, 3010]
   else
